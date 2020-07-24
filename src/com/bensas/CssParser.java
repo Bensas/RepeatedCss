@@ -3,11 +3,14 @@ package com.bensas;
 import sun.jvm.hotspot.utilities.Assert;
 //ACID: Atomicidad, consistencia, aislamiento, durabilidad
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.*;
 
 public class CssParser {
-    String token;
-    Scanner sc;
+    int token;
+    BufferedReader sc;
 
     private enum State{
         STANDBY,
@@ -80,7 +83,7 @@ public class CssParser {
 //                "}" +
 //                "{" +
 //                "src: url('http://hola.com.ar/?href=303;23');}\n\n\n";
-//        Scanner scan = new Scanner(input);
+//        BufferedReader scan = new Scanner(input);
 //        scan.useDelimiter("");
 //        try{
 //            standby(classCount, scan);
@@ -101,12 +104,17 @@ public class CssParser {
     public static void main(String[] args) {
 //        test1();
         HashMap<CssClass, Integer> classCount = new HashMap<>();
-        Scanner scan = new Scanner(System.in);
-        scan.useDelimiter("");
+//        BufferedReader scan = new Scanner(System.in, "UTF-8");
+//        scan.useDelimiter("");
+
+        BufferedReader scan = new BufferedReader(new
+                InputStreamReader(System.in), 148000);
         CssParser parser = new CssParser();
         try{
             parser.standby(classCount, scan);
         } catch (InvalidCssException e){
+            System.err.println(e.getMessage() + "sfdsf");
+        } catch (IOException e){
             System.err.println(e.getMessage());
         }
         for (CssClass mClass: classCount.keySet()){
@@ -119,7 +127,7 @@ public class CssParser {
 
     }
 
-//    private static void parseFileIterative(HashMap<CssClass, Integer> classCount, Scanner sc) throws InvalidCssException{
+//    private static void parseFileIterative(HashMap<CssClass, Integer> classCount, BufferedReader sc) throws InvalidCssException{
 //        State currentState = State.STANDBY;
 //        Stack<CssClass> classStack = new Stack<>();
 //        Stack<Attribute> attributeStack = new Stack<>();
@@ -129,7 +137,7 @@ public class CssParser {
 //            String token = sc.next();
 //            switch (currentState){
 //                case STANDBY:
-//                    switch(token){
+//                    switch((char)token){
 //                        case '{':
 //                            CssClass newClass = new CssClass();
 //                            classStack.push(newClass);
@@ -139,7 +147,7 @@ public class CssParser {
 //                    }
 //                    break;
 //                case PARSE_CLASS:
-//                    switch(token){
+//                    switch((char)token){
 //                        case "{":
 //                            CssClass newClass = new CssClass();
 //                            classStack.push(newClass);
@@ -165,7 +173,7 @@ public class CssParser {
 //                    }
 //                    break;
 //                case PARSE_ATTRIBUTE:
-//                    switch(token){
+//                    switch((char)token){
 //                        case ":":
 //                            currentState = State.PARSE_ATTRIBUTE_VALUE;
 //                            break;
@@ -208,115 +216,115 @@ public class CssParser {
         }
     }
 
-    private void standby(HashMap<CssClass, Integer> classCount, Scanner sc) throws InvalidCssException{
-        if (sc.hasNext()){
-            token = sc.next();
-            switch(token){
-                case "{":
-                    CssClass newClass = new CssClass();
-                    parseClass(classCount, sc, newClass);
-                    increaseMapCounter(classCount, newClass);
-                    standby(classCount, sc);
-                    break;
-                default:
-                    standby(classCount, sc);
-                    return;
+    private void standby(HashMap<CssClass, Integer> classCount, BufferedReader sc) throws InvalidCssException, IOException{
+        while ((token = sc.read()) != -1){
+            if ((char)token == '{'){
+                CssClass newClass = new CssClass();
+                parseClass(classCount, sc, newClass);
+                increaseMapCounter(classCount, newClass);
+//                standby(classCount, sc);
+//                break;
             }
+//            switch((char)token){
+//                case '{':
+//                    CssClass newClass = new CssClass();
+//                    parseClass(classCount, sc, newClass);
+//                    increaseMapCounter(classCount, newClass);
+//                    standby(classCount, sc);
+//                    break;
+//                default:
+//                    standby(classCount, sc);
+//                    return;
+//            }
         }
-        else{
-            return;
-        }
+        return;
     }
 
-    private void parseClass(HashMap<CssClass, Integer> classCount, Scanner sc, CssClass currentClass) throws InvalidCssException{
-        if (sc.hasNext()){
-            token = sc.next();
-            switch(token){
-                case "{":
+    private void parseClass(HashMap<CssClass, Integer> classCount, BufferedReader sc, CssClass currentClass) throws InvalidCssException, IOException{
+        if ((token = sc.read()) != -1){
+            switch((char)token){
+                case '{':
                     CssClass newClass = new CssClass();
                     parseClass(classCount, sc, newClass);
                     increaseMapCounter(classCount, newClass);
                     return;
-                case "}":
+                case '}':
                     return;
                 default:
-                    if (token.matches("[a-zA-Z]")){
+                    if (Character.isLetter(token)){
                         Attribute newAttribute = new Attribute();
-                        newAttribute.name = newAttribute.name.concat(token);
+                        newAttribute.name = newAttribute.name + (char)token;
                         parseAttribute(classCount, sc, newAttribute);
                         if (!newAttribute.value.equals(""))
                             currentClass.attributes.add(newAttribute);
                         parseClass(classCount, sc, currentClass);
                     }
-                    if (token.matches(" ") || token.matches("\n")){
+                    if (token == ' ' || token == '\n'){
                         parseClass(classCount, sc, currentClass);
                     }
             }
         }
     }
 
-    private void parseAttribute(HashMap<CssClass, Integer> classCount, Scanner sc, Attribute currentAttribute) throws InvalidCssException {
-        if (sc.hasNext()){
-            token = sc.next();
-            switch(token){
-                case ":":
+    private void parseAttribute(HashMap<CssClass, Integer> classCount, BufferedReader sc, Attribute currentAttribute) throws InvalidCssException, IOException {
+        if ((token = sc.read()) != -1){
+            switch((char)token){
+                case ':':
                     parseAttributeValue(sc, currentAttribute);
                     return;
-                case "{":
+                case '{':
                     CssClass newClass = new CssClass();
                     parseClass(classCount, sc, newClass);
                     increaseMapCounter(classCount, newClass);
                     return;
                 default:
-                    if (token.matches(" ") || token.matches("\n")){
+                    if (token == ' ' || token== '\n'){
                         parseAttribute(classCount, sc, currentAttribute);
                         return;
                     }
-                    if (token.matches("[a-zA-Z\\-]")) {
-                        currentAttribute.name = currentAttribute.name.concat(token);
+//                    if (Character.isLetter(token) || Character.isDigit(token) || token == '-') {
+                        currentAttribute.name = currentAttribute.name + (char)token;
                         parseAttribute(classCount, sc, currentAttribute);
-                    } else {
-                        throw new InvalidCssException();
-                    }
+//                    } else {
+//                        throw new InvalidCssException();
+//                    }
 
             }
         }
     }
 
-    private void parseAttributeValue(Scanner sc, Attribute attribute){
-        if (sc.hasNext()){
-            token = sc.next();
-            switch(token){
-                case ";":
+    private void parseAttributeValue(BufferedReader sc, Attribute attribute) throws IOException{
+        if ((token = sc.read()) != -1){
+            switch((char)token){
+                case ';':
                     System.out.println(attribute.name + ": " + attribute.value);
                     return;
                 default:
-                    if (token.matches("\"") || token.matches("'")){
-                        attribute.value = attribute.value.concat(token);
+                    if (token == '"' || token == '\''){
+                        attribute.value = attribute.value + ((char)token);
                         parseString(sc, attribute);
                         parseAttributeValue(sc, attribute);
                         return;
                     }
-                    if (token.matches(" ") || token.matches("\n")){
+                    if (token == ' ' || token== '\n'){
                         parseAttributeValue(sc, attribute);
                         return;
                     }
-                    attribute.value = attribute.value.concat(token);
+                    attribute.value = attribute.value + ((char)token);
                     parseAttributeValue(sc, attribute);
             }
         }
     }
 
-    private void parseString(Scanner sc, Attribute attribute){
-        if (sc.hasNext()){
-            token = sc.next();
-            switch(token){
+    private void parseString(BufferedReader sc, Attribute attribute) throws IOException {
+        if ((token = sc.read()) != -1){
+            switch((char)token){
                 default:
-                    if (token.matches("\"") || token.matches("'")){
-                        attribute.value = attribute.value.concat(token);
+                    if (token == '"' || token == '\''){
+                        attribute.value = attribute.value + ((char)token);
                         return;
                     }
-                    attribute.value = attribute.value.concat(token);
+                    attribute.value = attribute.value + ((char)token);
                     parseString(sc, attribute);
             }
         }
