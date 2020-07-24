@@ -69,7 +69,7 @@ public class CssParser {
 
     public static class InvalidCssException extends Exception{}
 
-//    public static void test1(){
+//    public void test1(){
 //        System.out.println("Running test 1...");
 //        HashMap<CssClass, Integer> classCount = new HashMap<>();
 //        String input = "{\n" +
@@ -83,13 +83,9 @@ public class CssParser {
 //                "}" +
 //                "{" +
 //                "src: url('http://hola.com.ar/?href=303;23');}\n\n\n";
-//        BufferedReader scan = new Scanner(input);
-//        scan.useDelimiter("");
-//        try{
-//            standby(classCount, scan);
-//        } catch (InvalidCssException e){
-//            System.err.println(e.getMessage());
-//        }
+//        BufferedReader scan = new BufferedReader(new
+//                InputStreamReader(System.in));
+//        standby(classCount, scan);
 //
 //        Assert.that(classCount.keySet().size() == 2, "Two different classes should have been found!");
 //        System.out.println("Test 1 ran successfully");
@@ -108,9 +104,10 @@ public class CssParser {
 //        scan.useDelimiter("");
 
         BufferedReader scan = new BufferedReader(new
-                InputStreamReader(System.in), 148000);
+                InputStreamReader(System.in));
         CssParser parser = new CssParser();
         try{
+//            parser.test1();
             parser.standby(classCount, scan);
         } catch (InvalidCssException e){
             System.err.println(e.getMessage() + "sfdsf");
@@ -124,89 +121,13 @@ public class CssParser {
             System.out.println("}");
             System.out.println("Count: " + classCount.get(mClass));
         }
+        Object[] counts = classCount.values().toArray();
+        Arrays.sort(counts);
+        System.out.println((Integer)counts[counts.length-1]);
+//        int maxRepeat = counts[0];
+//        System.out.println("Max repeated:" + maxRepeat);
 
     }
-
-//    private static void parseFileIterative(HashMap<CssClass, Integer> classCount, BufferedReader sc) throws InvalidCssException{
-//        State currentState = State.STANDBY;
-//        Stack<CssClass> classStack = new Stack<>();
-//        Stack<Attribute> attributeStack = new Stack<>();
-//
-//        sc.useDelimiter("");
-//        while (sc.hasNext()){
-//            String token = sc.next();
-//            switch (currentState){
-//                case STANDBY:
-//                    switch((char)token){
-//                        case '{':
-//                            CssClass newClass = new CssClass();
-//                            classStack.push(newClass);
-//                            currentState = State.PARSE_CLASS;
-//                            break;
-//                        default:
-//                    }
-//                    break;
-//                case PARSE_CLASS:
-//                    switch((char)token){
-//                        case "{":
-//                            CssClass newClass = new CssClass();
-//                            classStack.push(newClass);
-//                            break;
-//                        case "}":
-//                            increaseMapCounter(classCount, classStack.pop());
-//                            currentState = State.STANDBY;
-//                            break;
-//                        default:
-//                            if (token.matches("[a-zA-Z]")){
-//                                Attribute newAttribute = new Attribute();
-//                                newAttribute.name = newAttribute.name.concat(token);
-//                                currentState = State.PARSE_ATTRIBUTE;
-//                                break;
-////                                parseAttribute(classCount, sc, newAttribute);
-//                                if (!newAttribute.value.equals(""))
-//                                    currentClass.attributes.add(newAttribute);
-//                                parseClass(classCount, sc, currentClass);
-//                            }
-//                            if (token.matches(" ") || token.matches("\n")){
-//                                parseClass(classCount, sc, currentClass);
-//                            }
-//                    }
-//                    break;
-//                case PARSE_ATTRIBUTE:
-//                    switch((char)token){
-//                        case ":":
-//                            currentState = State.PARSE_ATTRIBUTE_VALUE;
-//                            break;
-////                            parseAttributeValue(sc, currentAttribute);
-//                            return;
-//                        case "{":
-//                            CssClass newClass = new CssClass();
-//                            classStack.push(newClass);
-//                            currentState = State.PARSE_CLASS;
-//                            increaseMapCounter(classCount, newClass);
-//                            return;
-//                        default:
-//                            if (token.matches(" ") || token.matches("\n")){
-//                                parseAttribute(classCount, sc, currentAttribute);
-//                                return;
-//                            }
-//                            if (token.matches("[a-zA-Z\\-]")) {
-//                                currentAttribute.name = currentAttribute.name.concat(token);
-//                                parseAttribute(classCount, sc, currentAttribute);
-//                            } else {
-//                                throw new InvalidCssException();
-//                            }
-//
-//                    }
-//                    break;
-//                case PARSE_ATTRIBUTE_VALUE:
-//                    break;
-//                case PARSE_STRING:
-//                    break;
-//
-//            }
-//        }
-//    }
 
     private static <T> void increaseMapCounter(HashMap<T, Integer> map, T newObj){
         if (map.containsKey(newObj)){
@@ -222,20 +143,7 @@ public class CssParser {
                 CssClass newClass = new CssClass();
                 parseClass(classCount, sc, newClass);
                 increaseMapCounter(classCount, newClass);
-//                standby(classCount, sc);
-//                break;
             }
-//            switch((char)token){
-//                case '{':
-//                    CssClass newClass = new CssClass();
-//                    parseClass(classCount, sc, newClass);
-//                    increaseMapCounter(classCount, newClass);
-//                    standby(classCount, sc);
-//                    break;
-//                default:
-//                    standby(classCount, sc);
-//                    return;
-//            }
         }
         return;
     }
