@@ -61,7 +61,7 @@ public class CssParser {
         public int hashCode() {
             String stringRepresentation = new String();
             for (Attribute attr: attributes){
-                stringRepresentation.concat(attr.name).concat(attr.value);
+                stringRepresentation = stringRepresentation.concat(attr.name).concat(":").concat(attr.value);
             }
             return Objects.hash(stringRepresentation);
         }
@@ -98,19 +98,14 @@ public class CssParser {
     }
 
     public static void main(String[] args) {
-//        test1();
         HashMap<CssClass, Integer> classCount = new HashMap<>();
-//        BufferedReader scan = new Scanner(System.in, "UTF-8");
-//        scan.useDelimiter("");
 
-        BufferedReader scan = new BufferedReader(new
-                InputStreamReader(System.in));
+        BufferedReader scan = new BufferedReader(new InputStreamReader(System.in));
         CssParser parser = new CssParser();
         try{
-//            parser.test1();
             parser.standby(classCount, scan);
         } catch (InvalidCssException e){
-            System.err.println(e.getMessage() + "sfdsf");
+            System.err.println("Invalid Css!");
         } catch (IOException e){
             System.err.println(e.getMessage());
         }
@@ -121,9 +116,14 @@ public class CssParser {
             System.out.println("}");
             System.out.println("Count: " + classCount.get(mClass));
         }
-        Object[] counts = classCount.values().toArray();
-        Arrays.sort(counts);
-        System.out.println((Integer)counts[counts.length-1]);
+        Object[] counts = classCount.keySet().toArray();
+        Arrays.sort(counts,(a, b) -> classCount.get(a).compareTo(classCount.get(b)));
+        for (Object key: counts){
+            for (Attribute att: ((CssClass)key).attributes){
+                System.out.print(att.name + ":" + att.value + ", ");
+            }
+            System.out.println("|| Count: " + classCount.get(key));
+        }
 //        int maxRepeat = counts[0];
 //        System.out.println("Max repeated:" + maxRepeat);
 
@@ -132,6 +132,7 @@ public class CssParser {
     private static <T> void increaseMapCounter(HashMap<T, Integer> map, T newObj){
         if (map.containsKey(newObj)){
             map.put(newObj, map.get(newObj) + 1);
+//            printSet(((CssClass)newObj).attributes);
         } else {
             map.put(newObj, 1);
         }
